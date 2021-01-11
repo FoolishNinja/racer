@@ -6,51 +6,57 @@ import androidx.core.content.res.ResourcesCompat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.shapes.OvalShape;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.TextureView;
 import android.widget.ImageView;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ThreadLocalRandom;
 
-import ch.scs.cs.racer.R;
+import ch.scs.cs.racer.models.Coin;
+import ch.scs.cs.racer.models.Game;
 
 public class GameActivity extends AppCompatActivity {
+    // Statics
     private final float mappedTiltLeftMax = 0f;
     private final float mappedTiltRightMax = 1f;
 
+    // Game object
+    private Game game;
+
+    // Sensors
     private SensorManager sensorManager;
     private Sensor tiltSensor;
 
+    // Canvas
     private ImageView gameView;
     private Canvas canvas;
     private Bitmap bitmap;
-    private Timer loopTimer = new Timer(false);
-    private TimerTask loopTimerTask = new TimerTask() {
-        @Override
-        public void run() {
-            loop();
-        }
-    };
 
+    // Rotation sensor values
     private float tiltZero;
     private float tiltLeftMax;
     private float tiltRightMax;
     private float yTilt = -10f;
     private float mappedYTilt = 0.5f;
+
+    // Screen ratio
     private int screenWidth = 0;
     private int screenHeight = 0;
 
-    private int playerColor;
-
+    // Runtime
     private boolean isInitialized = false;
 
     private SensorEventListener tiltSensorEventListener = new SensorEventListener() {
@@ -69,7 +75,6 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         initializeSensor();
-        loadColors();
     }
 
     @Override
@@ -78,46 +83,18 @@ public class GameActivity extends AppCompatActivity {
         initializeGame();
     }
 
-    private void loadColors() {
-        playerColor = ResourcesCompat.getColor(getResources(), R.color.player, null);
-    }
-
     private void initializeGame() {
         if (isInitialized) return;
         gameView = findViewById(R.id.gameImageView);
-        loopTimer.scheduleAtFixedRate(loopTimerTask, 20, 20);
+
 
         screenWidth = gameView.getWidth();
         screenHeight = gameView.getHeight();
-
         bitmap = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+
         gameView.setImageBitmap(bitmap);
-
         canvas = new Canvas(bitmap);
-        clearCanvas();
-        isInitialized = true;
-    }
-
-    private void loop() {
-    }
-
-    private void clearCanvas() {
-        canvas.drawColor(ResourcesCompat.getColor(getResources(), R.color.teal_700, null));
-        gameView.invalidate();
-    }
-
-    private void drawPlayer() {
-        if (canvas == null) return;
-        Rect playerRect = new Rect();
-        int pos = (int) (screenWidth * (1 - mappedYTilt));
-        playerRect.left = pos - 50;
-        playerRect.right = pos;
-        playerRect.top = screenHeight - 50;
-        playerRect.bottom = screenHeight;
-        Paint playerPaint = new Paint(playerColor);
-        clearCanvas();
-        canvas.drawRect(playerRect, playerPaint);
-        gameView.invalidate();
+        game = new Game(canvas, gameView, getResources(), screenWidth, screenHeight, mappedYTilt);
     }
 
     private void initializeSensor() {
@@ -133,11 +110,11 @@ public class GameActivity extends AppCompatActivity {
             tiltLeftMax = tiltZero - 0.25f;
             tiltRightMax = tiltZero + 0.25f;
         }
-        if(isHardTilt(event.values[1])) return;
+        if (isHardTilt(event.values[1])) return;
         yTilt = round(event.values[1], 2);
         mapYTilt();
         handleOvertilt();
-        drawPlayer();
+        if(game != null) game.setMappedYTilt(mappedYTilt);
     }
 
     private boolean isHardTilt(float nextTilt) {
@@ -159,6 +136,8 @@ public class GameActivity extends AppCompatActivity {
 
     private void mapYTilt() {
         mappedYTilt = round(1 - ((yTilt - tiltRightMax) / (tiltRightMax - tiltLeftMax) * (mappedTiltRightMax - mappedTiltLeftMax) + mappedTiltRightMax), 2);
+        if (mappedYTilt > 1) mappedYTilt = 1;
+        if (mappedYTilt < 0) mappedYTilt = 0;
     }
 
     private float round(float d, int decimalPlace) {
