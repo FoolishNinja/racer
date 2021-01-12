@@ -3,6 +3,7 @@ package ch.scs.cs.racer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startGame(View view) {
         Intent intent = new Intent(this, GameActivity.class);
+        intent.putExtra("carIndex", 3);
         startActivity(intent);
     }
 }

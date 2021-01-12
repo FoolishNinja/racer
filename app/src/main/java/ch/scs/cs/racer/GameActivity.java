@@ -1,34 +1,31 @@
 package ch.scs.cs.racer;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.drawable.shapes.OvalShape;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
 import android.widget.ImageView;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ThreadLocalRandom;
 
-import ch.scs.cs.racer.models.Coin;
+import ch.scs.cs.racer.models.Car;
 import ch.scs.cs.racer.models.Game;
+import ch.scs.cs.racer.models.Garage;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     // Statics
     private final float mappedTiltLeftMax = 0f;
     private final float mappedTiltRightMax = 1f;
@@ -41,7 +38,7 @@ public class GameActivity extends AppCompatActivity {
     private Sensor tiltSensor;
 
     // Canvas
-    private ImageView gameView;
+    private SurfaceView gameView;
     private Canvas canvas;
     private Bitmap bitmap;
 
@@ -59,6 +56,10 @@ public class GameActivity extends AppCompatActivity {
     // Runtime
     private boolean isInitialized = false;
 
+    // Garage
+    private Garage garage = new Garage();
+    private Car car;
+
     private SensorEventListener tiltSensorEventListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -73,28 +74,27 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game);
         initializeSensor();
+        gameView = new SurfaceView(this);
+        setContentView(gameView);
+        gameView.getHolder().addCallback(this);
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        initializeGame();
-    }
-
-    private void initializeGame() {
+    private void initializeGame(SurfaceHolder surfaceHolder) {
         if (isInitialized) return;
-        gameView = findViewById(R.id.gameImageView);
-
-
+        car = garage.getCarAtIndex(getIntent().getIntExtra("carIndex", 0));
         screenWidth = gameView.getWidth();
         screenHeight = gameView.getHeight();
-        bitmap = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+        game = new Game(() -> {
+            gameOver();
+        },surfaceHolder, gameView, getResources(), car, screenWidth, screenHeight, mappedYTilt);
+    }
 
-        gameView.setImageBitmap(bitmap);
-        canvas = new Canvas(bitmap);
-        game = new Game(canvas, gameView, getResources(), screenWidth, screenHeight, mappedYTilt);
+    private void gameOver() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("score", game.getMeters());
+        intent.putExtra("coins", game.getCurrentCoinCount());
+        startActivity(intent);
     }
 
     private void initializeSensor() {
@@ -114,7 +114,7 @@ public class GameActivity extends AppCompatActivity {
         yTilt = round(event.values[1], 2);
         mapYTilt();
         handleOvertilt();
-        if(game != null) game.setMappedYTilt(mappedYTilt);
+        if (game != null) game.setMappedYTilt(mappedYTilt);
     }
 
     private boolean isHardTilt(float nextTilt) {
@@ -144,5 +144,20 @@ public class GameActivity extends AppCompatActivity {
         BigDecimal bd = new BigDecimal(d);
         bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
         return bd.floatValue();
+    }
+
+    @Override
+    public void surfaceCreated(@NonNull SurfaceHolder holder) {
+        initializeGame(holder);
+    }
+
+    @Override
+    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+
     }
 }

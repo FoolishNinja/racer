@@ -18,7 +18,7 @@ import ch.scs.cs.racer.R;
 import ch.scs.cs.racer.databinding.FragmentHomeBinding;
 import ch.scs.cs.racer.databinding.FragmentShopBinding;
 
-public class HomeFragment extends Fragment {
+public class  HomeFragment extends Fragment {
 
     private HomeViewModel homeViewModel;
     private FragmentHomeBinding binding;
