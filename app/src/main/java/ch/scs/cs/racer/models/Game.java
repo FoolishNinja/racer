@@ -111,11 +111,11 @@ public class Game {
     // Games obstacle spawn interval in tenth of seconds
     private float obstacleInterval = 10;
     // Games tick
-    private int gameTickRender = 10;
+    private long gameTickRender = 10;
     // Games current tick
     private int currentTick = 0;
     // Spawns tick
-    private int spawnTickRender = 500;
+    private long spawnTickRender = 500;
     // Spawns current tick
     private int spawnCurrentTick = 0;
     private int obstaclesPerSpawn = 1;
@@ -152,11 +152,14 @@ public class Game {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.mappedYTilt = mappedYTilt;
+        this.gameTickRender = 1000L / (long) car.getSpeed();
+        this.spawnTickRender = 50000L / (long) car.getSpeed();
         loadAssets();
         initialize();
     }
 
     private void initialize() {
+
         loopTimer.scheduleAtFixedRate(loopTimerTask, 1, 1);
         loopTimer.scheduleAtFixedRate(renderTimerTask, 16, 16);
         loopTimer.scheduleAtFixedRate(rampUpTimerTask, 15000, 15000);
@@ -184,9 +187,9 @@ public class Game {
         canvas = holder.lockCanvas();
         if (canvas != null) {
             clearCanvas();
+            drawCurbs();
             drawCoins();
             drawObstacles();
-            drawCurbs();
             drawPlayer();
             drawTopText();
             holder.unlockCanvasAndPost(canvas);
@@ -194,6 +197,10 @@ public class Game {
     }
 
     private void gameOver() {
+        loopTimerTask.cancel();
+        renderTimerTask.cancel();
+        rampUpTimerTask.cancel();
+        loopTimer.purge();
         gameOver.run();
     }
 
@@ -214,12 +221,13 @@ public class Game {
     }
 
     private void rampUp() {
-        if (gameTickRender > 0) gameTickRender -= 0.5;
-        if (spawnCurrentTick > 0) spawnCurrentTick -= 0.5;
-        if (coinSpawnInterval > 0) coinSpawnInterval -= 0.5;
-        if (obstacleInterval > 0) obstacleInterval -= 0.5;
-        if (obstacleInterval % 2 == 0 || obstacleInterval < 1) obstaclesPerSpawn++;
-        currentCoinValue += 2;
+        double times = 0.0025 * (float) car.getSpeed();
+        if (gameTickRender > 1 + times) gameTickRender -= times;
+        if (spawnTickRender > 1 + times) spawnTickRender -= times;
+        if (coinSpawnInterval > 0 + times) coinSpawnInterval -= times;
+        if (obstacleInterval > 0 + times) obstacleInterval -= times;
+        if (level % 2 == 0 || obstacleInterval < 1) obstaclesPerSpawn++;
+        currentCoinValue += 1;
         level++;
     }
 
@@ -318,7 +326,7 @@ public class Game {
                             playerRect.intersect(obstacle.getX(), obstacle.getY(), obstacle.getX() + obstacle.getWidth(), obstacle.getY() + obstacle.getHeight())
             ) {
                 gameOver();
-                return false;
+                return true;
             }
             return true;
         }).collect(Collectors.toList());
@@ -343,7 +351,7 @@ public class Game {
     }
 
     private void spawnCoin(int value, int count) {
-        int pos = getRandomNumber(0, screenWidth - 30);
+        int pos = getRandomNumber(curbWidth, screenWidth - curbWidth - coinSide);
         for (int i = 0; i < count; i++) {
             coins.add(new Coin(pos, -(i * (coinSide + coinSpacing)), value));
         }
@@ -352,10 +360,10 @@ public class Game {
     private void spawnObstacle() {
         int width = getRandomNumber(minObstacleWidth, maxObstacleWidth);
         int height = getRandomNumber(minObstacleHeight, maxObstacleHeight);
-        int pos = getRandomNumber(0, screenWidth - width);
+        int pos = getRandomNumber(curbWidth, screenWidth - width - curbWidth);
         boolean doesOverlap = true;
         while (doesOverlap) {
-            pos = getRandomNumber(0, screenWidth - width);
+            pos = getRandomNumber(curbWidth, screenWidth - width - curbWidth);
             doesOverlap = false;
             for (Obstacle obstacle : obstacles) {
                 if (pos > obstacle.getX() + width && pos < obstacle.getX() + obstacle.getWidth() && level < 10) {
@@ -368,7 +376,7 @@ public class Game {
 
 
     public void setMappedYTilt(float mappedYTilt) {
-        this.mappedYTilt = 1 - mappedYTilt;
+        this.mappedYTilt = mappedYTilt;
     }
 
 

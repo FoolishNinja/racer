@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import java.math.BigDecimal;
@@ -78,11 +79,12 @@ public class GameActivity extends AppCompatActivity implements SurfaceHolder.Cal
         gameView = new SurfaceView(this);
         setContentView(gameView);
         gameView.getHolder().addCallback(this);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void initializeGame(SurfaceHolder surfaceHolder) {
         if (isInitialized) return;
-        car = garage.getCarAtIndex(getIntent().getIntExtra("carIndex", 0));
+        car = garage.getCars().stream().filter(c -> c.getName().equals(getIntent().getStringExtra("carName"))).findFirst().get();
         screenWidth = gameView.getWidth();
         screenHeight = gameView.getHeight();
         game = new Game(() -> {
