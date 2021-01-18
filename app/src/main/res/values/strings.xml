@@ -5,4 +5,11 @@
     <string name="start_game_button">Start Game</string>
     <string name="arrow_left">❮</string>
     <string name="arrow_right">❯</string>
+    <string name="bought">Bought</string>
+    <string name="already_bought">Already bought car</string>
+    <string name="insufficient_balance">Insufficient balance</string>
+    <string name="coins">Coins: </string>
+    <string name="level"> Level: </string>
+    <string name="score"> Score: </string>
+    <string name="high_score">Highscore: </string>
 </resources>

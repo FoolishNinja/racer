@@ -1,7 +1,5 @@
 package ch.scs.cs.racer;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,47 +8,45 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentHostCallback;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.navigation.NavArgument;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import ch.scs.cs.racer.databinding.ActivityMainBinding;
-import ch.scs.cs.racer.models.Car;
 import ch.scs.cs.racer.models.Garage;
-import ch.scs.cs.racer.ui.home.HomeFragment;
-import ch.scs.cs.racer.ui.shop.ShopFragment;
 
+/**
+ * Main activity, here you can start the game and access the shop
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class MainActivity extends AppCompatActivity {
     private static final int sharedPreferenceKey = 42069;
 
+    // players all time highscore
     private int highScore;
+    // players coin amount
     private int coins;
+    // currently selected car's index
     private int selectedCarIndex;
+    // Players garage
     private Garage garage;
 
     private ActivityMainBinding binding;
 
+    // Coins display text
     private TextView coinsText;
+    // Highscore display text
     private TextView highScoreText;
-
-    private Fragment homeFragment;
-    private Fragment shopFragment;
 
     private NavController navController;
 
@@ -75,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         putSelectedCarBundle(navController);
     }
 
+    /**
+     * Loads unlocked cars on save instance state
+     */
     private void loadSavedInstanceState(Bundle savedInstanceState) {
         if(savedInstanceState != null) {
             ArrayList<Integer> unlockedCarIndexes = savedInstanceState.getIntegerArrayList("unlockedCarIndexes");
@@ -86,17 +85,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Persists unlocked cars on save instance state
+     */
     @Override
     protected void onSaveInstanceState(@NonNull @NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putIntegerArrayList("unlockedCarIndexes", getUnlockedCarIndexes());
     }
 
+    /**
+     * Loads the two text views
+     */
     private void loadViews() {
         coinsText = findViewById(R.id.coinsText);
         highScoreText = findViewById(R.id.highscoreText);
     }
 
+    /**
+     * Adds the selected car index and unlocked car index to the nav controller bundle, for the home controller to retreive it
+     * @param navController
+     */
     private void putSelectedCarBundle(NavController navController) {
         Bundle selectedCarBundle = new Bundle();
         selectedCarBundle.putInt("selectedCarIndex", selectedCarIndex);
@@ -109,17 +118,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         getGameActivityIntent();
-        loadCurrentFragment();
     }
 
-    private void loadCurrentFragment() {
-        int id = navController.getCurrentDestination().getId();
-        if(id == R.id.navigation_home) {
-            homeFragment = getSupportFragmentManager().getFragments().get(0);
-        } else shopFragment = getSupportFragmentManager().getFragments().get(0);
-
-    }
-
+    /**
+     * Loads the persisted game data
+     */
     private void loadSharedPreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences(String.valueOf(sharedPreferenceKey), Context.MODE_PRIVATE);
         highScore = sharedPreferences.getInt("highScore", 0);
@@ -131,12 +134,18 @@ public class MainActivity extends AppCompatActivity {
         setCoinsAndHighScoreText();
     }
 
+    /**
+     * Starts the game
+     */
     public void startGame(View view) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra("carName", garage.getCars().get(selectedCarIndex).getName());
         startActivity(intent);
     }
 
+    /**
+     * Retrieves played game's results
+     */
     private void getGameActivityIntent() {
         if (!getIntent().hasExtra("score")) return;
         int score = getIntent().getIntExtra("score", highScore);
@@ -145,12 +154,18 @@ public class MainActivity extends AppCompatActivity {
         setCoinsAndHighScoreText();
     }
 
+    /**
+     *  Sets the coins and highscore text
+     */
     private void setCoinsAndHighScoreText() {
-        coinsText.setText("Coins: " + coins + "$");
-        highScoreText.setText("Highscore: " + highScore + "m");
+        coinsText.setText(getString(R.string.coins) + coins + "$");
+        highScoreText.setText(getString(R.string.high_score) + highScore + "m");
     }
 
     @Override
+    /**
+     * Persists the data on a close of the app
+     */
     protected void onStop() {
         super.onStop();
         SharedPreferences sharedPreferences = getSharedPreferences(String.valueOf(sharedPreferenceKey), Context.MODE_PRIVATE);
@@ -162,10 +177,18 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    /**
+     * Sets the currently selected car, called by shop fragment
+     * @param index
+     */
     public void setSelectedCarIndex(int index) {
         selectedCarIndex = index;
     }
 
+    /**
+     * Returns each index of the garage, where the player has unlocked the car
+     * @return all unlocked car indexes
+     */
     public ArrayList<Integer> getUnlockedCarIndexes() {
         ArrayList<Integer> unlockedCarIndexes = new ArrayList<>();
         for (int i = 0; i < garage.getCars().size(); i++) {

@@ -8,6 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Garage model
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class Garage {
     private List<Car> cars = new ArrayList<>();
 

@@ -1,16 +1,11 @@
 package ch.scs.cs.racer.models;
 
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.TextureView;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -23,6 +18,12 @@ import java.util.stream.Collectors;
 
 import ch.scs.cs.racer.R;
 
+/**
+ * Game class
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class Game {
     /**
      * Statics
@@ -39,16 +40,23 @@ public class Game {
     private final int coinSpacing = 10;
     // Side length of a coin
     private final int coinSide = 40;
+    // Minimal width of an obstacle
     private final int minObstacleWidth = 100;
+    // Maximal width of an obstacle
     private final int maxObstacleWidth = 200;
+    // Minimal height of an obstacle
     private final int minObstacleHeight = 120;
+    // Maximal height of an obstacle
     private final int maxObstacleHeight = 240;
+    // Curbs width
     private final int curbLength = 70;
+    // Curbs height
     private final int curbWidth = 50;
 
     /**
      * Loops setup
      */
+    // Games loop timer which schedules all timer tasks
     private Timer loopTimer = new Timer(false);
     // Main game loop
     private TimerTask loopTimerTask = new TimerTask() {
@@ -57,12 +65,14 @@ public class Game {
             loop();
         }
     };
+    // Game rendering loop
     private TimerTask renderTimerTask = new TimerTask() {
         @Override
         public void run() {
             render();
         }
     };
+    // Games ramp up loop
     private TimerTask rampUpTimerTask = new TimerTask() {
         @Override
         public void run() {
@@ -79,11 +89,10 @@ public class Game {
     /**
      * Game canvas and view
      */
-    // Game canvas where the painting happens
+    // Games surface holder
     private SurfaceHolder holder;
+    // Game canvas where the painting happens
     private Canvas canvas;
-    // Game Image view where the canvas is rendered to.
-    private SurfaceView gameView;
 
     /**
      * Screen ratio
@@ -118,19 +127,33 @@ public class Game {
     private long spawnTickRender = 500;
     // Spawns current tick
     private int spawnCurrentTick = 0;
+    // Count of obstacles per spawn
     private int obstaclesPerSpawn = 1;
+    // Current level
     private int level = 1;
+    // Meters traveled
     private int meters = 0;
+    // Current curb offset for drawing
     private int currentCurbOffset = 0;
+    // Is the current curb white
     private boolean isWhite = false;
 
-    // Game objects
+    /**
+     * Game objects
+     */
+
+    // All coins on screen
     private List<Coin> coins = new ArrayList<>();
+    // All obstacles on screen
     private List<Obstacle> obstacles = new ArrayList<>();
+    // Player car rectangle
     private Rect playerRect = new Rect();
+    // Players car
     private Car car;
 
-    // Paints
+    /**
+     * Paints
+     */
     private Paint tirePaint;
     private Paint coinPaint;
     private Paint coinCountTextPaint;
@@ -138,15 +161,17 @@ public class Game {
     private Paint redPaint;
     private Paint whitePaint;
 
-    // Runtime
+    /**
+     * Runtime
+     */
+    // Game activity resources
     private Resources resources;
-
+    // Runnable from game activity which triggers the gameover callback
     private Runnable gameOver;
 
-    public Game(Runnable gameOver, SurfaceHolder surfaceHolder, SurfaceView gameView, Resources resources, Car car, int screenWidth, int screenHeight, float mappedYTilt) {
+    public Game(Runnable gameOver, SurfaceHolder surfaceHolder, Resources resources, Car car, int screenWidth, int screenHeight, float mappedYTilt) {
         this.gameOver = gameOver;
         this.holder = surfaceHolder;
-        this.gameView = gameView;
         this.resources = resources;
         this.car = car;
         this.screenWidth = screenWidth;
@@ -158,13 +183,18 @@ public class Game {
         initialize();
     }
 
+    /**
+     * Schedules all timer tasks
+     */
     private void initialize() {
-
         loopTimer.scheduleAtFixedRate(loopTimerTask, 1, 1);
         loopTimer.scheduleAtFixedRate(renderTimerTask, 16, 16);
         loopTimer.scheduleAtFixedRate(rampUpTimerTask, 15000, 15000);
     }
 
+    /**
+     * Loads all colors
+     */
     private void loadAssets() {
         tirePaint = new Paint();
         tirePaint.setColor(Color.BLACK);
@@ -183,6 +213,9 @@ public class Game {
         whitePaint.setColor(Color.WHITE);
     }
 
+    /**
+     * Renders coins, obstacles, car, info text and curbs
+     */
     private void render() {
         canvas = holder.lockCanvas();
         if (canvas != null) {
@@ -196,6 +229,9 @@ public class Game {
         }
     }
 
+    /**
+     * Stops all loops and calls game activity gameover runnable
+     */
     private void gameOver() {
         loopTimerTask.cancel();
         renderTimerTask.cancel();
@@ -204,6 +240,9 @@ public class Game {
         gameOver.run();
     }
 
+    /**
+     * Game update loop, checks player coin and obstacle collision, moves all objects, calls spawning
+     */
     private void loop() {
         currentTick++;
         if (currentTick > gameTickRender) {
@@ -220,6 +259,9 @@ public class Game {
         }
     }
 
+    /**
+     * Increments games speed, coin values, obstacle count, coin and obstacle interval and level
+     */
     private void rampUp() {
         double times = 0.0025 * (float) car.getSpeed();
         if (gameTickRender > 1 + times) gameTickRender -= times;
@@ -232,6 +274,9 @@ public class Game {
     }
 
 
+    /**
+     * Spawns coins and obstacles
+     */
     private void spawning() {
         if (currentCoinSpawnInterval > coinSpawnInterval) {
             currentCoinSpawnInterval = 0;
@@ -245,16 +290,25 @@ public class Game {
         currentObstacleSpawnInterval += currentObstacleSpawnIntervalStep;
     }
 
+    /**
+     * Clears the canvas
+     */
     private void clearCanvas() {
         canvas.drawColor(ResourcesCompat.getColor(resources, R.color.track, null));
     }
 
+    /**
+     * Draws all coins
+     */
     private void drawCoins() {
         for (Coin coin : coins) {
             canvas.drawCircle(coin.getX(), coin.getY(), coinSide / 2, coinPaint);
         }
     }
 
+    /**
+     * Draws all curbs
+     */
     private void drawCurbs() {
         boolean currentIsWhite = isWhite;
         for (int i = 0; i < screenHeight / curbLength + 5; i++) {
@@ -271,6 +325,9 @@ public class Game {
         }
     }
 
+    /**
+     * Draws all obstacles
+     */
     private void drawObstacles() {
         for (Obstacle obstacle : obstacles) {
             Rect rect = new Rect();
@@ -282,10 +339,16 @@ public class Game {
         }
     }
 
+    /**
+     * Draws info text
+     */
     private void drawTopText() {
-        canvas.drawText("Coins: " + currentCoinCount + "$ Level: " + level + " Score: " + meters + "m", 50, 50, coinCountTextPaint);
+        canvas.drawText(resources.getString(R.string.coins) + currentCoinCount + '$' + resources.getString(R.string.level) + level + resources.getString(R.string.score) + meters + "m", 50, 50, coinCountTextPaint);
     }
 
+    /**
+     * Draws player
+     */
     public void drawPlayer() {
         if (canvas == null) return;
         int pos = (int) (screenWidth * (1 - mappedYTilt));
@@ -302,6 +365,9 @@ public class Game {
         canvas.drawRect(playerRect, car.getPaint());
     }
 
+    /**
+     * Checks player collision with all coins
+     */
     private void checkPlayerCoinCollision() {
         int coinSideHalf = coinSide / 2;
         coins = coins.stream().filter(coin -> {
@@ -318,6 +384,9 @@ public class Game {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Checks player collision with all obstacles, triggers gameover
+     */
     private void checkPlayerObstacleCollision() {
         obstacles = obstacles.stream().filter(obstacle -> {
             if (obstacle.getY() > screenHeight + obstacle.getHeight()) return false;
@@ -332,6 +401,9 @@ public class Game {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Moves coins, curbs and obstacles
+     */
     private void moveObjects() {
         for (Coin coin : coins) {
             coin.setY(coin.getY() + 5);
@@ -346,10 +418,21 @@ public class Game {
         currentCurbOffset += 5;
     }
 
+    /**
+     * Spawns random amount of coins with given value
+     *
+     * @param value Value of the coins
+     */
     private void spawnCoins(int value) {
         spawnCoin(value, getRandomNumber(minCoinsPerSpawn, maxCoinsPerSpawn));
     }
 
+    /**
+     * Spawns coins with given value and count
+     *
+     * @param value Value of each coin
+     * @param count Amount of coins
+     */
     private void spawnCoin(int value, int count) {
         int pos = getRandomNumber(curbWidth, screenWidth - curbWidth - coinSide);
         for (int i = 0; i < count; i++) {
@@ -357,6 +440,9 @@ public class Game {
         }
     }
 
+    /**
+     * Spawns an obstacle
+     */
     private void spawnObstacle() {
         int width = getRandomNumber(minObstacleWidth, maxObstacleWidth);
         int height = getRandomNumber(minObstacleHeight, maxObstacleHeight);
@@ -374,12 +460,23 @@ public class Game {
         obstacles.add(new Obstacle(pos, -height, width, height));
     }
 
-
+    /**
+     * Sets the current mappedYTilt, called by Game Activity
+     *
+     * @param mappedYTilt
+     */
     public void setMappedYTilt(float mappedYTilt) {
         this.mappedYTilt = mappedYTilt;
     }
 
 
+    /**
+     * Get a random number between
+     *
+     * @param min lower bound
+     * @param max upper bound
+     * @return random number between bounds
+     */
     private int getRandomNumber(int min, int max) {
         return ThreadLocalRandom.current().nextInt(min, max + 1);
     }

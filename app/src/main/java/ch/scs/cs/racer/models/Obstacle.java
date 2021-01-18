@@ -1,5 +1,11 @@
 package ch.scs.cs.racer.models;
 
+/**
+ * Obstacle model
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class Obstacle {
     private int x;
     private int y;
