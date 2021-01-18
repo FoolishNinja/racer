@@ -1,8 +1,17 @@
 package ch.scs.cs.racer.models;
 
+/**
+ * Coin model
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class Coin {
+    // X Pos of coin
     private int x;
+    // Y Pos of coin
     private int y;
+    // Coins value in $
     private int value;
 
     public Coin(int x, int y, int value) {
@@ -15,10 +24,6 @@ public class Coin {
         return x;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
     public int getY() {
         return y;
     }
@@ -29,9 +34,5 @@ public class Coin {
 
     public int getValue() {
         return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
     }
 }

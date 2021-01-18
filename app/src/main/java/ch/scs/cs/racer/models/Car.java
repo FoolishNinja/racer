@@ -2,12 +2,20 @@ package ch.scs.cs.racer.models;
 
 import android.graphics.Paint;
 
+/**
+ * Car model
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class Car {
     private String name;
+    // Speed in kmh
     private int speed;
     private int width;
     private int height;
     private int price;
+    // Car is bought
     private boolean hasBought;
     private Paint paint;
 
@@ -33,10 +41,6 @@ public class Car {
         return speed;
     }
 
-    public void setSpeed(int speed) {
-        this.speed = speed;
-    }
-
     public int getWidth() {
         return width;
     }
@@ -49,16 +53,8 @@ public class Car {
         return height;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
     public int getPrice() {
         return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
     }
 
     public boolean isHasBought() {
@@ -71,9 +67,5 @@ public class Car {
 
     public Paint getPaint() {
         return paint;
-    }
-
-    public void setPaint(Paint paint) {
-        this.paint = paint;
     }
 }

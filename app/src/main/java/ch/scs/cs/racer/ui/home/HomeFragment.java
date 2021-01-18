@@ -1,8 +1,5 @@
 package ch.scs.cs.racer.ui.home;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -18,14 +15,7 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import ch.scs.cs.racer.MainActivity;
@@ -34,26 +24,33 @@ import ch.scs.cs.racer.databinding.FragmentHomeBinding;
 import ch.scs.cs.racer.models.Car;
 import ch.scs.cs.racer.models.Garage;
 
+/**
+ * Home fragment, located in main activity
+ *
+ * @author Carlo Schmid
+ * @version 18.01.2021
+ */
 public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
-    private static final int sharedPreferenceKey = 42069;
-
-    private HomeViewModel homeViewModel;
     private FragmentHomeBinding binding;
+    // Surface view where the selected car is displayed
     private SurfaceView carSelectionSurfaceView;
-    private Garage garage = new Garage();
-    private Canvas canvas;
-    private int selectedCarIndex;
     private int surfaceViewWidth;
     private int surfaceViewHeight;
     private SurfaceHolder surfaceHolder;
+    private Canvas canvas;
+
+    private Garage garage = new Garage();
+    private int selectedCarIndex;
+
+    // Buttons to change selected car
     private Button leftButton;
     private Button rightButton;
 
+    // Main activity reference
     private MainActivity mainActivity;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         leftButton = root.findViewById(R.id.leftButton);
@@ -70,7 +67,8 @@ public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
         super.onCreate(savedInstanceState);
         mainActivity = (MainActivity) getActivity();
         garage = mainActivity.getGarage();
-        if(garage != null) garage.setCars(garage.getCars().stream().filter(Car::isHasBought).collect(Collectors.toList()));
+        if (garage != null)
+            garage.setCars(garage.getCars().stream().filter(Car::isHasBought).collect(Collectors.toList()));
         if (getArguments() != null) {
             selectedCarIndex = getArguments().getInt("selectedCarIndex");
         } else {
@@ -79,8 +77,10 @@ public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
 
     }
 
+    /**
+     * Adds button event listeners
+     */
     private void initialize() {
-
         leftButton.setOnClickListener(v -> {
             if (selectedCarIndex == 0) return;
             selectedCarIndex--;
@@ -95,10 +95,13 @@ public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
         });
     }
 
+    /**
+     * Updates the selected car index in the main activity
+     */
     private void updateParentSelectedCarIndex() {
-        try{
+        try {
             ((MainActivity) getActivity()).setSelectedCarIndex(selectedCarIndex);
-        }catch (ClassCastException e){
+        } catch (ClassCastException e) {
             e.printStackTrace();
         }
     }
@@ -110,6 +113,9 @@ public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
         binding = null;
     }
 
+    /**
+     * Renders car to surface view
+     */
     private void render() {
         canvas = surfaceHolder.lockCanvas();
         if (canvas != null) {
@@ -119,10 +125,16 @@ public class HomeFragment extends Fragment implements SurfaceHolder.Callback {
         }
     }
 
+    /**
+     * Clears surface view
+     */
     private void clearCanvas() {
         canvas.drawColor(Color.WHITE);
     }
 
+    /**
+     * Renders car and car name
+     */
     private void renderInterface() {
         Car car = garage.getCarAtIndex(selectedCarIndex);
         Rect carRect = new Rect();
