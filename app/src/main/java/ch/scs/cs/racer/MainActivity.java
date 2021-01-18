@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadSharedPreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences(String.valueOf(sharedPreferenceKey), Context.MODE_PRIVATE);
         highScore = sharedPreferences.getInt("highScore", 0);
-        coins = sharedPreferences.getInt("coins", 50000);
+        coins = sharedPreferences.getInt("coins", 0);
         selectedCarIndex = sharedPreferences.getInt("selectedCarIndex", 0);
         garage = new Garage();
         Set<String> unlockedCarNames = sharedPreferences.getStringSet("unlockedCarNames", new HashSet<>());
