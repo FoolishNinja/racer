@@ -4,7 +4,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Garage {
     private List<Car> cars = new ArrayList<>();
@@ -29,7 +31,7 @@ public class Garage {
                 150,
                 70,
                 100,
-                200,
+                2000,
                 false,
                 car2Paint
         ));
@@ -40,7 +42,7 @@ public class Garage {
                 170,
                 80,
                 120,
-                250,
+                2500,
                 false,
                 car3Paint
         ));
@@ -51,7 +53,7 @@ public class Garage {
                 100,
                 200,
                 100,
-                400,
+                4000,
                 false,
                 car4Paint
         ));
@@ -61,7 +63,7 @@ public class Garage {
         return cars;
     }
 
-    public Car getCarAtIndex(int index)  {
+    public Car getCarAtIndex(int index) {
         return cars.get(index);
     }
 
@@ -71,9 +73,23 @@ public class Garage {
 
     public boolean buyCar(int balance, int carIndex) {
         Car car = cars.get(carIndex);
-        if(balance < car.getPrice()) return false;
+        if (balance < car.getPrice()) return false;
         car.setHasBought(true);
         cars.set(carIndex, car);
         return true;
+    }
+
+    public void setAsBought(String carName) {
+        for (Car car : cars) {
+            if (car.getName().equals(carName)) car.setHasBought(true);
+        }
+    }
+
+    public Set<String> getBoughtCarNames() {
+        Set<String> boughtCars = new HashSet<>();
+        for (Car car : cars) {
+            if (car.isHasBought()) boughtCars.add(car.getName());
+        }
+        return boughtCars;
     }
 }
