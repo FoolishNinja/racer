@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadSharedPreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences(String.valueOf(sharedPreferenceKey), Context.MODE_PRIVATE);
         highScore = sharedPreferences.getInt("highScore", 0);
-        coins = sharedPreferences.getInt("coins", 50000);
+        coins = sharedPreferences.getInt("coins", 4500);
         selectedCarIndex = sharedPreferences.getInt("selectedCarIndex", 0);
         garage = new Garage();
         Set<String> unlockedCarNames = sharedPreferences.getStringSet("unlockedCarNames", new HashSet<>());
@@ -170,10 +170,11 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         SharedPreferences sharedPreferences = getSharedPreferences(String.valueOf(sharedPreferenceKey), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("highScore", highScore);
+        /**editor.putInt("highScore", highScore);
         editor.putInt("coins", coins);
         editor.putStringSet("unlockedCarNames", garage.getBoughtCarNames());
-        editor.putInt("selectedCarIndex", selectedCarIndex);
+        editor.putInt("selectedCarIndex", selectedCarIndex);**/
+        editor.clear();
         editor.apply();
     }
 
